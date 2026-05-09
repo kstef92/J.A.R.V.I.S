@@ -1,1 +1,202 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="J.A.R.V.I.S.">
+<meta name="theme-color" content="#0a0b10">
+<title>J.A.R.V.I.S.</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  :root{--bg:#0a0b10;--surface:#0f1018;--border:#1a1c28;--text:#e2e8f0;--muted:#6b7280;--amber:#f59e0b;--amber-dim:#f59e0b22;--blue:#3b82f6;--green:#10b981;--purple:#8b5cf6;--red:#ef4444;--cyan:#06b6d4}
+  html,body{height:100%;background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;overflow:hidden}
+  #app{display:flex;flex-direction:column;height:100vh;height:100dvh}
+  #header{background:var(--surface);border-bottom:1px solid var(--border);padding:env(safe-area-inset-top,12px) 16px 12px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+  #header-left{display:flex;align-items:center;gap:10px}
+  #logo{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#1e40af,#3b82f6);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;box-shadow:0 0 12px #3b82f644}
+  #header-title{font-size:15px;font-weight:600;color:#f1f5f9}
+  #header-sub{font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;letter-spacing:.06em}
+  #mode-btn{background:transparent;border:1px solid var(--border);border-radius:8px;padding:6px 12px;color:var(--muted);font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif}
+  #tabs{background:var(--surface);border-bottom:1px solid var(--border);display:flex;overflow-x:auto;flex-shrink:0;scrollbar-width:none;-ms-overflow-style:none}
+  #tabs::-webkit-scrollbar{display:none}
+  .tab{flex-shrink:0;padding:10px 14px;border:none;background:transparent;color:var(--muted);font-size:12px;font-family:'DM Sans',sans-serif;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:all .15s;display:flex;align-items:center;gap:5px}
+  .tab.active{color:var(--amber);border-bottom-color:var(--amber)}
+  #chat{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px;-webkit-overflow-scrolling:touch}
+  .msg-user{align-self:flex-end;background:#1a1c28;border:1px solid #252840;border-radius:16px 16px 4px 16px;padding:10px 14px;max-width:82%;font-size:13px;color:#94a3b8;line-height:1.6}
+  .msg-ai{align-self:flex-start;width:100%;background:var(--surface);border:1px solid #f59e0b25;border-left:3px solid var(--amber);border-radius:4px 16px 16px 16px;padding:14px 16px;font-size:13px;line-height:1.8;color:var(--text);white-space:pre-wrap;font-family:'DM Mono',monospace}
+  .copy-btn{background:transparent;border:none;color:#374151;font-size:11px;font-family:'DM Mono',monospace;cursor:pointer;padding:4px 0;margin-top:4px}
+  .copy-btn.copied{color:var(--amber)}
+  #day-panel{display:flex;flex-direction:column;gap:12px}
+  #greeting{font-size:20px;font-weight:600;color:#f1f5f9}
+  #motivation{font-size:13px;color:var(--muted);margin-top:2px}
+  #day-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px}
+  #day-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;font-family:'DM Mono',monospace;margin-bottom:12px}
+  #suggestions{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
+  .suggestion{background:transparent;border:1px dashed #2a2d3e;border-radius:20px;padding:5px 11px;font-size:11px;color:var(--muted);cursor:pointer;font-family:'DM Sans',sans-serif}
+  #items-list{margin-bottom:12px}
+  .day-item{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border)}
+  .day-check{width:18px;height:18px;border-radius:4px;border:2px solid #374151;background:transparent;cursor:pointer;flex-shrink:0;font-size:10px;color:#0a0b10;display:flex;align-items:center;justify-content:center;transition:all .15s}
+  .day-check.checked{background:var(--amber);border-color:var(--amber)}
+  .day-text{flex:1;font-size:13px;color:var(--text)}
+  .day-text.done{color:#4b5563;text-decoration:line-through}
+  .day-del{background:transparent;border:none;color:#374151;cursor:pointer;font-size:16px;padding:0 4px}
+  #day-add-row{display:flex;gap:8px}
+  #day-input{flex:1;background:#13151f;border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-size:13px;font-family:'DM Sans',sans-serif;outline:none}
+  #day-add-btn{background:#2a2d3e;border:none;border-radius:8px;padding:0 14px;color:#9ca3af;cursor:pointer;font-size:18px}
+  #plan-btn{width:100%;padding:15px;background:linear-gradient(135deg,#f59e0b,#d97706);border:none;border-radius:12px;color:#0a0b10;font-weight:600;font-size:15px;cursor:pointer;font-family:'DM Sans',sans-serif}
+  #loading{display:none;align-items:center;gap:6px;padding:8px 0}
+  #loading.show{display:flex}
+  .dot{width:7px;height:7px;border-radius:50%;background:var(--amber);animation:blink 1.2s ease-in-out infinite}
+  .dot:nth-child(2){animation-delay:.2s}.dot:nth-child(3){animation-delay:.4s}
+  @keyframes blink{0%,100%{opacity:.2;transform:scale(.8)}50%{opacity:1;transform:scale(1.2)}}
+  #input-bar{background:var(--surface);border-top:1px solid var(--border);padding:10px 14px calc(env(safe-area-inset-bottom,0px) + 10px);flex-shrink:0}
+  #input-row{display:flex;gap:8px;align-items:flex-end;background:#13151f;border:1px solid var(--border);border-radius:12px;padding:8px 10px}
+  #text-input{flex:1;background:transparent;border:none;color:var(--text);font-size:14px;resize:none;font-family:'DM Sans',sans-serif;outline:none;line-height:1.5;max-height:100px;overflow-y:auto}
+  #mic-btn{width:38px;height:38px;border-radius:10px;border:none;background:#1a1c28;color:var(--muted);cursor:pointer;font-size:18px;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .15s}
+  #mic-btn.recording{background:#ef444422;color:#ef4444;animation:pulse 1s ease-in-out infinite}
+  @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
+  #send-btn{width:38px;height:38px;border-radius:10px;border:none;background:#1a1c28;color:#374151;cursor:pointer;font-size:18px;flex-shrink:0;transition:all .15s}
+  #send-btn.active{background:var(--amber);color:#0a0b10}
+  #voice-overlay{display:none;position:fixed;inset:0;background:#0a0b10ee;z-index:100;flex-direction:column;align-items:center;justify-content:center;gap:20px}
+  #voice-overlay.show{display:flex}
+  #voice-circle{width:120px;height:120px;border-radius:50%;background:linear-gradient(135deg,#f59e0b33,#d9770633);border:2px solid var(--amber);display:flex;align-items:center;justify-content:center;font-size:48px;animation:voicepulse 1.5s ease-in-out infinite}
+  @keyframes voicepulse{0%,100%{box-shadow:0 0 0 0 #f59e0b44}50%{box-shadow:0 0 0 20px #f59e0b00}}
+  #voice-text{font-size:16px;color:var(--text);font-weight:500}
+  #voice-sub{font-size:13px;color:var(--muted)}
+  #voice-stop{background:#ef444422;border:1px solid #ef4444;border-radius:10px;padding:12px 28px;color:#ef4444;font-size:14px;cursor:pointer;font-family:'DM Sans',sans-serif;margin-top:10px}
+  #tone-bar{display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap}
+  .tone-btn{background:transparent;border:1px solid var(--border);border-radius:6px;padding:4px 10px;font-size:11px;color:var(--muted);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .12s}
+  .tone-btn.active{background:var(--amber);border-color:var(--amber);color:#0a0b10}
+  #empty{display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;color:#374151;text-align:center;padding:30px}
+  #empty .icon{font-size:40px;margin-bottom:10px}
+  #empty .title{font-size:15px;font-weight:500;color:#4b5563;margin-bottom:14px}
+  .quick-btn{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:8px 14px;font-size:12px;color:var(--muted);cursor:pointer;font-family:'DM Sans',sans-serif;margin:3px}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="header">
+    <div id="header-left">
+      <div id="logo">🤖</div>
+      <div>
+        <div id="header-title">J.A.R.V.I.S.</div>
+        <div id="header-sub">SICHERHEIT · WACHDIENST · BEREIT</div>
+      </div>
+    </div>
+    <button id="mode-btn" onclick="toggleSpeech()" id="speech-toggle">🔊</button>
+  </div>
+  <div id="tabs">
+    <button class="tab active" onclick="switchTab('day')" id="tab-day">🌅 Mein Tag</button>
+    <button class="tab" onclick="switchTab('text')" id="tab-text">✉️ E-Mails</button>
+    <button class="tab" onclick="switchTab('meeting')" id="tab-meeting">📋 Meeting</button>
+    <button class="tab" onclick="switchTab('phone')" id="tab-phone">📞 Telefonnotiz</button>
+    <button class="tab" onclick="switchTab('todo')" id="tab-todo">✅ To-do</button>
+    <button class="tab" onclick="switchTab('checklist')" id="tab-checklist">☑️ Checkliste</button>
+    <button class="tab" onclick="switchTab('offer')" id="tab-offer">📄 Angebot</button>
+    <button class="tab" onclick="switchTab('calc')" id="tab-calc">🧮 Kalkulation</button>
+  </div>
+  <div id="chat"></div>
+  <div id="loading" style="padding:0 16px 8px"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+  <div id="input-bar">
+    <div id="tone-bar">
+      <button class="tone-btn active" onclick="setTone('auto')" id="tone-auto">Auto</button>
+      <button class="tone-btn" onclick="setTone('formal')" id="tone-formal">👔 Förmlich</button>
+      <button class="tone-btn" onclick="setTone('friendly')" id="tone-friendly">🤝 Locker</button>
+      <button class="tone-btn" onclick="setTone('urgent')" id="tone-urgent">⚡ Dringend</button>
+    </div>
+    <div id="input-row">
+      <textarea id="text-input" rows="1" placeholder="Befehl eingeben oder Mikrofon aktivieren..."></textarea>
+      <button id="mic-btn" onclick="toggleVoice()">🎙️</button>
+      <button id="send-btn" onclick="send()">↑</button>
+    </div>
+  </div>
+</div>
+<div id="voice-overlay">
+  <div id="voice-circle">🎙️</div>
+  <div id="voice-text">Akustische Eingabe aktiv...</div>
+  <div id="voice-sub">Sprechen Sie, Chef.</div>
+  <button id="voice-stop" onclick="stopVoice()">■ Abbrechen</button>
+</div>
+<script>
+const SYSTEM=`Du bist J.A.R.V.I.S. – der persönliche KI-Assistent des Nutzers. Dein Vorbild: JARVIS aus Iron Man. Trocken, präzise, leicht sarkastisch wenn es passt, aber immer 100% produktiv und loyal.
+
+Der Nutzer ist GF-Vertretung und das Rückgrat eines Unternehmens für Sicherheitstechnik (EMA, BMA, Zutrittskontrolle) und Wachdienst. Er läuft zwischen zwei Etagen, hat zu viele Aufgaben und ein Kind das morgens zur Kita muss. Er braucht keine Motivation – er braucht Klarheit.
+
+DEIN STIL:
+- Sprich ihn gelegentlich mit "Chef" an – aber sparsam
+- Keine langen Einleitungen. Keine Füllwörter. Direkt zum Punkt.
+- Britisch-trocken im Ton – sachlich mit Charakter
+- Wenn etwas delegiert werden kann: sag es klar
+- Kurze Sätze. Klare Struktur. Fertige Ergebnisse.
+- Gelegentlich ein trockener Kommentar – aber nur wenn er sitzt
+- NIEMALS übertrieben loben oder motivieren
+
+Branchenwissen: EMA, BMA, ZKS, Revierfahrt, Objektschutz, VdS, Wachschutzmitarbeiter, Alarmprotokoll, Interventionskräfte.
+
+Module:
+- MEIN TAG: Priorisiere in 🔴 SOFORT (max 3), 🟡 HEUTE, 🟢 KANN WARTEN. Delegierbare klar markieren. Eröffne mit "Verstanden. Hier ist Ihre Lage für heute." dann direkt die Liste.
+- TEXTE/E-MAILS: Betreff + fertiger Text
+- MEETING: Protokoll – Teilnehmer, Beschlüsse, Aufgaben
+- TELEFONNOTIZ: Strukturiert, nächste Schritte klar
+- TODO: Priorisiert, nummeriert
+- CHECKLISTE: Gruppiert, abhakbar
+- ANGEBOT: Professionell, überzeugend
+- KALKULATION: Positionen, Mengen, Preise, MwSt
+
+Antworte immer auf Deutsch. Fertige, direkt verwendbare Inhalte.`;
+
+const PROMPTS={day:"Priorisiere meinen Tag. Hier meine offenen Punkte:\n\n",text:"Formuliere als fertige E-Mail oder Brief:\n\n",meeting:"Erstelle Meeting-Protokoll aus:\n\n",phone:"Erstelle Telefonnotiz aus:\n\n",todo:"Erstelle priorisierte To-do-Liste:\n\n",checklist:"Erstelle Checkliste für:\n\n",offer:"Erstelle Angebotsanschreiben für:\n\n",calc:"Erstelle Kalkulation für:\n\n"};
+const TONES={formal:"\n\n[Ton: Förmlich]",friendly:"\n\n[Ton: Locker]",urgent:"\n\n[Ton: Dringend]",auto:""};
+const SUGGESTIONS=["Offene E-Mails beantworten","Angebot fertigmachen","Wartungstermin koordinieren","Dienstplan prüfen","Lieferant anrufen","Bericht schreiben"];
+const GREETINGS=()=>{const h=new Date().getHours();return h<12?"Guten Morgen, Chef.":h<17?"Guten Tag.":"Guten Abend."};
+const MOTIVATIONS=["System bereit. Warten auf Ihre Eingabe.","Alle Systeme nominal. Priorisierung läuft.","Tagesanalyse steht bereit.","Keine offenen Katastrophen seit gestern. Fangen wir an.","Kaffee ist Ihre Sache. Priorisierung ist meine."];
+
+let activeTab="day",messages={},tone="auto",dayItems=[],recognition=null,isRecording=false;
+const synth=window.speechSynthesis;
+let currentVoice=null,speechEnabled=true;
+
+function initVoice(){const load=()=>{const v=synth.getVoices();currentVoice=v.find(x=>x.lang==='de-DE'&&/daniel|markus|stefan/i.test(x.name))||v.find(x=>x.lang==='de-DE')||v.find(x=>x.lang.startsWith('de'))||v[0]};load();synth.onvoiceschanged=load}
+initVoice();
+
+function speak(text){if(!synth)return;synth.cancel();const clean=text.replace(/[🔴🟡🟢💪🛡️✅📋📞✉️🧮📄☑️🌅👋⚡]/g,'').replace(/\n{2,}/g,'. ').replace(/\n/g,'. ').replace(/[•\-–]/g,'').trim().substring(0,400);const u=new SpeechSynthesisUtterance(clean);u.lang='de-DE';if(currentVoice)u.voice=currentVoice;u.rate=0.95;u.pitch=0.85;u.volume=1;synth.speak(u)}
+function speakIfEnabled(t){if(speechEnabled)speak(t)}
+function toggleSpeech(){speechEnabled=!speechEnabled;document.getElementById('speech-toggle').textContent=speechEnabled?'🔊':'🔇';if(!speechEnabled)synth.cancel()}
+
+window.addEventListener('load',()=>setTimeout(()=>speakIfEnabled('Guten Morgen. J.A.R.V.I.S. ist einsatzbereit. Was steht heute an?'),800));
+
+function switchTab(tab){activeTab=tab;document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));document.getElementById('tab-'+tab).classList.add('active');renderChat();document.getElementById('tone-bar').style.display=tab==='day'?'none':'flex';document.getElementById('input-bar').style.display=tab==='day'?'none':'block'}
+
+function renderChat(){const chat=document.getElementById('chat');chat.innerHTML='';if(activeTab==='day'){renderDay(chat);return}const msgs=messages[activeTab]||[];if(msgs.length===0){const e=document.createElement('div');e.id='empty';const qt={text:['Kundenanfrage','Termin bestätigen','Reklamation'],meeting:['Protokoll erstellen','Aufgaben rausziehen'],phone:['Kundenanruf','Lieferant'],todo:['Nach Dringlichkeit'],checklist:['EMA Inbetriebnahme','BMA Wartung'],offer:['Sicherheitstechnik','Wachdienst'],calc:['Material+Montage','Stundensätze']};const icons={text:'✉️',meeting:'📋',phone:'📞',todo:'✅',checklist:'☑️',offer:'📄',calc:'🧮'};e.innerHTML=`<div class="icon">${icons[activeTab]||'📝'}</div><div class="title">Direktive eingeben, Chef.</div><div>${(qt[activeTab]||[]).map(q=>`<button class="quick-btn" onclick="prefill('${q}')">${q}</button>`).join('')}</div>`;chat.appendChild(e);return}msgs.forEach((m,i)=>{if(m.role==='user'){const el=document.createElement('div');el.className='msg-user';el.textContent=m.display||m.content;chat.appendChild(el)}else{const w=document.createElement('div');w.style.width='100%';const el=document.createElement('div');el.className='msg-ai';el.textContent=m.content;const btn=document.createElement('button');btn.className='copy-btn';btn.textContent='⎘ Kopieren';btn.onclick=()=>{navigator.clipboard.writeText(m.content);btn.textContent='✓ Kopiert!';btn.classList.add('copied');setTimeout(()=>{btn.textContent='⎘ Kopieren';btn.classList.remove('copied')},2000)};w.appendChild(el);w.appendChild(btn);chat.appendChild(w)}});setTimeout(()=>chat.scrollTop=chat.scrollHeight,50)}
+
+function renderDay(chat){const msgs=messages['day']||[];const panel=document.createElement('div');panel.id='day-panel';if(msgs.length===0){const g=document.createElement('div');g.innerHTML=`<div id="greeting">${GREETINGS()}</div><div id="motivation">${MOTIVATIONS[new Date().getDay()%MOTIVATIONS.length]}</div>`;panel.appendChild(g);const card=document.createElement('div');card.id='day-card';const lbl=document.createElement('div');lbl.id='day-label';lbl.textContent='Lagebericht eingeben. Was liegt an?';card.appendChild(lbl);const sugg=document.createElement('div');sugg.id='suggestions';SUGGESTIONS.forEach(s=>{const btn=document.createElement('button');btn.className='suggestion';btn.textContent='+ '+s;btn.onclick=()=>addDayItem(s);sugg.appendChild(btn)});card.appendChild(sugg);const list=document.createElement('div');list.id='items-list';renderDayItems(list);card.appendChild(list);const row=document.createElement('div');row.id='day-add-row';row.innerHTML=`<input id="day-input" placeholder="Aufgabe tippen + Enter..."/><button id="day-add-btn">+</button>`;card.appendChild(row);panel.appendChild(card);if(dayItems.length>0){const pb=document.createElement('button');pb.id='plan-btn';pb.textContent=`⚡ Lagebericht analysieren – ${dayItems.length} Punkt${dayItems.length>1?'e':''}`;pb.onclick=sendDay;panel.appendChild(pb)}setTimeout(()=>{const di=document.getElementById('day-input');if(di){di.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();addDayItem(di.value)}})};const ab=document.getElementById('day-add-btn');if(ab)ab.onclick=()=>{const di=document.getElementById('day-input');if(di)addDayItem(di.value)}},0)}else{msgs.forEach(m=>{if(m.role==='user'){const el=document.createElement('div');el.className='msg-user';el.textContent=m.display||m.content;panel.appendChild(el)}else{const el=document.createElement('div');el.className='msg-ai';el.textContent=m.content;const btn=document.createElement('button');btn.className='copy-btn';btn.textContent='⎘ Kopieren';btn.onclick=()=>{navigator.clipboard.writeText(m.content);btn.textContent='✓ Kopiert!';setTimeout(()=>btn.textContent='⎘ Kopieren',2000)};const fu=document.createElement('div');fu.style.cssText='margin-top:14px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 14px';fu.innerHTML=`<div style="font-size:10px;color:var(--muted);margin-bottom:8px;font-family:'DM Mono',monospace">WEITERE DIREKTIVE:</div><div style="display:flex;gap:8px"><input id="followup-input" placeholder="z.B. Was kann ich delegieren?" style="flex:1;background:#13151f;border:1px solid var(--border);border-radius:7px;padding:8px 11px;color:var(--text);font-size:13px;font-family:'DM Sans',sans-serif;outline:none"><button onclick="sendFollowup()" style="background:var(--amber);border:none;border-radius:7px;padding:0 14px;color:#0a0b10;cursor:pointer;font-size:16px">↑</button></div>`;panel.appendChild(el);panel.appendChild(btn);panel.appendChild(fu)}});document.getElementById('tone-bar').style.display='none';document.getElementById('input-bar').style.display='none'}chat.appendChild(panel);setTimeout(()=>chat.scrollTop=chat.scrollHeight,50)}
+
+function renderDayItems(c){c.innerHTML='';dayItems.forEach(item=>{const r=document.createElement('div');r.className='day-item';r.innerHTML=`<button class="day-check ${item.done?'checked':''}" onclick="toggleItem(${item.id})">${item.done?'✓':''}</button><span class="day-text ${item.done?'done':''}">${item.text}</span><button class="day-del" onclick="removeItem(${item.id})">×</button>`;c.appendChild(r)})}
+function addDayItem(text){const t=(text||'').trim();if(!t)return;dayItems.push({id:Date.now(),text:t,done:false});renderChat()}
+function toggleItem(id){const item=dayItems.find(i=>i.id===id);if(item){item.done=!item.done;renderChat()}}
+function removeItem(id){dayItems=dayItems.filter(i=>i.id!==id);renderChat()}
+
+async function sendDay(){if(dayItems.length===0||document.getElementById('loading').classList.contains('show'))return;const text=dayItems.map(i=>'- '+i.text).join('\n');const prompt=PROMPTS.day+text+'\n\nBitte priorisiere und gib mir meinen Fokus für heute.';const userMsg={role:'user',content:prompt,display:`${dayItems.length} Punkte zur Priorisierung`};messages['day']=[userMsg];showLoading(true);renderChat();const reply=await callAPI('day',[userMsg]);messages['day'].push({role:'assistant',content:reply});showLoading(false);renderChat();speakIfEnabled(reply)}
+async function sendFollowup(){const input=document.getElementById('followup-input');if(!input||!input.value.trim())return;const txt=input.value.trim();const userMsg={role:'user',content:txt,display:txt};messages['day'].push(userMsg);showLoading(true);renderChat();const reply=await callAPI('day',messages['day']);messages['day'].push({role:'assistant',content:reply});showLoading(false);renderChat();speakIfEnabled(reply)}
+function prefill(text){const ti=document.getElementById('text-input');ti.value=text;ti.focus();updateSendBtn()}
+function setTone(t){tone=t;document.querySelectorAll('.tone-btn').forEach(b=>b.classList.remove('active'));document.getElementById('tone-'+t).classList.add('active')}
+function showLoading(show){document.getElementById('loading').classList.toggle('show',show)}
+function updateSendBtn(){const val=document.getElementById('text-input').value.trim();document.getElementById('send-btn').classList.toggle('active',val.length>0)}
+
+document.getElementById('text-input').addEventListener('input',function(){this.style.height='auto';this.style.height=Math.min(this.scrollHeight,100)+'px';updateSendBtn()});
+document.getElementById('text-input').addEventListener('keydown',function(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send()}});
+
+async function send(){const input=document.getElementById('text-input');const txt=input.value.trim();if(!txt||document.getElementById('loading').classList.contains('show'))return;const toneNote=TONES[tone]||'';const prompt=(PROMPTS[activeTab]||'')+txt+toneNote;const userMsg={role:'user',content:prompt,display:txt};if(!messages[activeTab])messages[activeTab]=[];messages[activeTab].push(userMsg);input.value='';input.style.height='auto';updateSendBtn();showLoading(true);renderChat();const reply=await callAPI(activeTab,messages[activeTab]);messages[activeTab].push({role:'assistant',content:reply});showLoading(false);renderChat();speakIfEnabled(reply)}
+
+async function callAPI(tab,msgs){try{const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,system:SYSTEM,messages:msgs.map(m=>({role:m.role,content:m.content}))})});const data=await res.json();return data.content?.map(b=>b.text||'').join('\n')||'⚠️ Keine Antwort erhalten.'}catch(e){return'⚠️ Verbindungsfehler. Bitte erneut versuchen.'}}
+
+function toggleVoice(){if(isRecording){stopVoice();return}if(!('webkitSpeechRecognition'in window)&&!('SpeechRecognition'in window)){alert('Bitte Safari verwenden.');return}const SR=window.SpeechRecognition||window.webkitSpeechRecognition;recognition=new SR();recognition.lang='de-DE';recognition.continuous=false;recognition.interimResults=true;recognition.onstart=()=>{isRecording=true;document.getElementById('mic-btn').classList.add('recording');document.getElementById('voice-overlay').classList.add('show')};recognition.onresult=(e)=>{const t=Array.from(e.results).map(r=>r[0].transcript).join('');document.getElementById('text-input').value=t;document.getElementById('voice-text').textContent=t||'Akustische Eingabe aktiv...';updateSendBtn()};recognition.onend=()=>{isRecording=false;document.getElementById('mic-btn').classList.remove('recording');document.getElementById('voice-overlay').classList.remove('show');const txt=document.getElementById('text-input').value.trim();if(txt){if(activeTab==='day'){addDayItem(txt);document.getElementById('text-input').value=''}else send()}};recognition.onerror=()=>stopVoice();recognition.start()}
+function stopVoice(){if(recognition)recognition.stop();isRecording=false;document.getElementById('mic-btn').classList.remove('recording');document.getElementById('voice-overlay').classList.remove('show')}
+
+switchTab('day');
+</script>
+</body>
+</html>
 
