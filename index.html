@@ -287,7 +287,15 @@ async function sbInsert(t,d){
 async function sbSelect(t,l=50){try{const r=await fetch(SB_URL+'/rest/v1/'+t+'?order=created_at.desc&limit='+l,{headers:sbH});return await r.json()}catch(e){return []}}
 async function sbUpdate(t,id,d){try{await fetch(SB_URL+'/rest/v1/'+t+'?id=eq.'+id,{method:'PATCH',headers:{...sbH,'Prefer':'return=minimal'},body:JSON.stringify(d)})}catch(e){}}
 async function sbDelete(t,id){try{await fetch(SB_URL+'/rest/v1/'+t+'?id=eq.'+id,{method:'DELETE',headers:sbH})}catch(e){}}
-async function loadTodos(){const rows=await sbSelect('todos',100);if(Array.isArray(rows)&&rows.length>0){dayItems=rows.map(r=>({id:r.id,text:r.text,done:r.done,sb:true}));if(activeTab==='day')renderChat()}}
+async function loadTodos(){
+  const rows = await sbSelect('todos', 100);
+  if (Array.isArray(rows) && rows.length > 0) {
+    dayItems = rows.map(r => ({ id:r.id, text:r.text, done:r.done, sb:true }));
+  } else {
+    dayItems = [];
+  }
+  if (activeTab === 'day') renderChat();
+}
 
 function showKeySetup() {
   document.getElementById('app').style.display = 'none';
