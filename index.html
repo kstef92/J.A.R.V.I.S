@@ -287,6 +287,24 @@ async function sbInsert(t,d){
 async function sbSelect(t,l=50){try{const r=await fetch(SB_URL+'/rest/v1/'+t+'?order=created_at.desc&limit='+l,{headers:sbH});return await r.json()}catch(e){return []}}
 async function sbUpdate(t,id,d){try{await fetch(SB_URL+'/rest/v1/'+t+'?id=eq.'+id,{method:'PATCH',headers:{...sbH,'Prefer':'return=minimal'},body:JSON.stringify(d)})}catch(e){}}
 async function sbDelete(t,id){try{await fetch(SB_URL+'/rest/v1/'+t+'?id=eq.'+id,{method:'DELETE',headers:sbH})}catch(e){}}
+
+const TAB_TABLES = {
+  text:'texts', meeting:'meetings', phone:'phone_notes',
+  checklist:'checklists', offer:'offers', calc:'calcs'
+};
+
+async function loadHistory(tab) {
+  const table = TAB_TABLES[tab];
+  if (!table) return;
+  const rows = await sbSelect(table, 20);
+  if (!Array.isArray(rows) || rows.length === 0) return;
+  messages[tab] = [];
+  rows.reverse().forEach(r => {
+    messages[tab].push({ role:'user', content: r.title||'', display: r.caller||r.title||'Gespeicherter Eintrag' });
+    messages[tab].push({ role:'assistant', content: r.content });
+  });
+  if (activeTab === tab) renderChat();
+}
 async function loadTodos(){
   const rows = await sbSelect('todos', 100);
   if (Array.isArray(rows) && rows.length > 0) {
@@ -391,9 +409,9 @@ function switchTab(tab) {
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   document.getElementById('tab-' + tab).classList.add('active');
   renderChat();
-  // Hide tone bar for day tab
   document.getElementById('tone-bar').style.display = tab === 'day' ? 'none' : 'flex';
   document.getElementById('input-bar').style.display = tab === 'day' ? 'none' : 'block';
+  if (tab !== 'day' && !messages[tab]) loadHistory(tab);
 }
 
 // RENDER
@@ -667,8 +685,14 @@ async function send() {
   showLoading(false);
   renderChat();
   speakIfEnabled(reply);
-  if (activeTab === 'meeting') sbInsert("meetings", { title: txt.substring(0,60), content: reply });
-  if (activeTab === 'phone') sbInsert("phone_notes", { caller: txt.substring(0,60), content: reply });
+  // Save to Supabase
+  const title = txt.substring(0,60);
+  if (activeTab === 'meeting') sbInsert('meetings', { title, content: reply });
+  if (activeTab === 'phone') sbInsert('phone_notes', { caller: title, content: reply });
+  if (activeTab === 'text') sbInsert('texts', { title, content: reply });
+  if (activeTab === 'checklist') sbInsert('checklists', { title, content: reply });
+  if (activeTab === 'offer') sbInsert('offers', { title, content: reply });
+  if (activeTab === 'calc') sbInsert('calcs', { title, content: reply });
 }
 
 async function callAPI(tab, msgs) {
